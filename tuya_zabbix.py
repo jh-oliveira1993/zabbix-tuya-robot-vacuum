@@ -107,8 +107,8 @@ def fetch_device_status() -> Optional[Dict[str, Any]]:
         dev_id=DEVICE_ID,
         address=DEVICE_IP,
         local_key=LOCAL_KEY,
-        version=PROTOCOL_VERSION,
     )
+    device.set_version(PROTOCOL_VERSION)
     device.set_socketTimeout(DEVICE_TIMEOUT)
 
     status = device.status()
