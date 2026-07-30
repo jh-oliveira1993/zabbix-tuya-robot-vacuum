@@ -1,0 +1,21 @@
+# Secret files — never commit these
+.env
+devices.json
+tinytuya.json
+snapshot.json
+
+# Python virtual environment
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Logs
+*.log
+
+# OS artefacts
+.DS_Store
+Thumbs.db

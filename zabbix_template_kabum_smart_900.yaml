@@ -1,0 +1,722 @@
+zabbix_export:
+  version: "7.0"
+  template_groups:
+    - uuid: a571c0d4-7b3e-4c68-a23f-9e1b5d8f0a2c
+      name: IoT/Smart Home
+
+  templates:
+    - uuid: b3f2e1a0-8c4d-4b79-b5e6-2d7f9a0c3e8d
+      template: KaBuM Smart 900 Vacuum
+      name: KaBuM Smart 900 Vacuum
+      description: |
+        Monitoring template for the KaBuM Smart 900 robot vacuum (Tuya OEM,
+        protocol 3.3) via local LAN telemetry collection.
+
+        Data is injected by the tuya_zabbix.py collector running on the
+        Ubuntu 24.04 host.  A single Zabbix Trapper master item receives
+        the raw JSON payload; all 24 dependent items are derived from it
+        using JSONPath pre-processing.
+
+        Consumable life-time values arrive in seconds remaining and are
+        converted to hours by the pre-processor (x0.000277778).
+        Cleaning duration arrives in seconds and is converted to minutes
+        (x0.0166667).
+
+        Author : Jose Henrique / Antigravity AI
+        Version: 1.0.0
+        Tested : Zabbix 7.0
+      groups:
+        - name: IoT/Smart Home
+
+      items:
+        # ------------------------------------------------------------------ #
+        # MASTER ITEM - raw JSON trapper                                      #
+        # ------------------------------------------------------------------ #
+        - uuid: c5a3b2d1-9e4f-4a8b-b6c7-3e8f0b1d4a9e
+          name: "Vacuum: Raw Telemetry (JSON)"
+          type: TRAP
+          key: tuya.vacuum.raw
+          value_type: TEXT
+          description: |
+            Master trapper item. Receives the serialised DPS dictionary
+            from tuya_zabbix.py via zabbix_sender. All other items depend
+            on this one and extract individual data points via JSONPath.
+          tags:
+            - tag: component
+              value: telemetry
+            - tag: source
+              value: tuya-local
+
+        # ------------------------------------------------------------------ #
+        # DP 101 - DND (Do Not Disturb) Switch                               #
+        # ------------------------------------------------------------------ #
+        - uuid: d6b4c3e2-af50-4b9c-b7d8-4f9a1c2e5b0f
+          name: "Vacuum: DND Switch (DP 101)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp101.dnd
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.101
+          description: Do Not Disturb mode toggle (true/false).
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "101"
+
+        # ------------------------------------------------------------------ #
+        # DP 102 - Auto-return to dock                                        #
+        # ------------------------------------------------------------------ #
+        - uuid: e7c5d4f3-b061-4c0d-b8e9-5a0b2d3f6c10
+          name: "Vacuum: Auto-return Switch (DP 102)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp102.auto_return
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.102
+          description: Auto-return-to-dock toggle (true/false).
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "102"
+
+        # ------------------------------------------------------------------ #
+        # DP 103 - Auto-boost suction                                         #
+        # ------------------------------------------------------------------ #
+        - uuid: f8d6e5a4-c172-4d1e-89fa-6b1c3e4a7d21
+          name: "Vacuum: Auto-boost Switch (DP 103)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp103.auto_boost
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.103
+          description: Auto-boost suction toggle (true/false).
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "103"
+
+        # ------------------------------------------------------------------ #
+        # DP 105 - Operational Status                                         #
+        # ------------------------------------------------------------------ #
+        - uuid: a1e7f6b5-d283-4e2f-aa0b-7c2d4f5b8e32
+          name: "Vacuum: Operational Status (DP 105)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp105.status
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.105
+          description: >
+            Current operational mode reported by the vacuum.
+            Known values: dormant, standby, smart, wall_follow,
+            mop, charge, goto_charge, charging, paused.
+          tags:
+            - tag: component
+              value: operation
+            - tag: dp
+              value: "105"
+
+        # ------------------------------------------------------------------ #
+        # DP 106 - Battery Level                                              #
+        # ------------------------------------------------------------------ #
+        - uuid: b2f8a7c6-e394-4f30-ab1c-8d3e5a6c9f43
+          name: "Vacuum: Battery Level (DP 106)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp106.battery
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: FLOAT
+          units: "%"
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.106
+          description: Remaining battery charge in percent.
+          tags:
+            - tag: component
+              value: power
+            - tag: dp
+              value: "106"
+
+        # ------------------------------------------------------------------ #
+        # DP 107 - Last cleaning duration                                     #
+        # ------------------------------------------------------------------ #
+        - uuid: c3a9b8d7-f4a5-4a41-ac2d-9e4f6b7d0a54
+          name: "Vacuum: Last Cleaning Duration (DP 107)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp107.clean_time
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: FLOAT
+          units: min
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.107
+            - type: MULTIPLIER
+              parameters:
+                - "0.0166667"
+          description: >
+            Duration of the last cleaning session.
+            Raw value from device is in seconds; multiplied by
+            0.0166667 to convert to minutes.
+          tags:
+            - tag: component
+              value: operation
+            - tag: dp
+              value: "107"
+
+        # ------------------------------------------------------------------ #
+        # DP 108 - Last cleaning area                                         #
+        # ------------------------------------------------------------------ #
+        - uuid: d4bac9e8-a5b6-4b52-bd3e-af5a7c8e1b65
+          name: "Vacuum: Last Cleaning Area (DP 108)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp108.clean_area
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: FLOAT
+          units: "m2"
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.108
+          description: Area covered during the last cleaning session in square meters.
+          tags:
+            - tag: component
+              value: operation
+            - tag: dp
+              value: "108"
+
+        # ------------------------------------------------------------------ #
+        # DP 109 - Suction Power                                              #
+        # ------------------------------------------------------------------ #
+        - uuid: e5cbdaf9-b6c7-4c63-ae4f-ba6b8d9f2c76
+          name: "Vacuum: Suction Power Level (DP 109)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp109.suction
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.109
+          description: >
+            Selected suction level.
+            Known values: gentle, normal, strong, max.
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "109"
+
+        # ------------------------------------------------------------------ #
+        # DP 110 - Water Level / Mop Wetness                                  #
+        # ------------------------------------------------------------------ #
+        - uuid: f6dceba0-c7d8-4d74-9f50-cb7c9eaa3d87
+          name: "Vacuum: Water Level (DP 110)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp110.water_level
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.110
+          description: >
+            Mop water amount setting.
+            Known values: low, medium, high.
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "110"
+
+        # ------------------------------------------------------------------ #
+        # DP 113 - Carpet Boost Switch                                        #
+        # ------------------------------------------------------------------ #
+        - uuid: a7edfcb1-d8e9-4e85-aa61-dc8daebb4e98
+          name: "Vacuum: Carpet Boost Switch (DP 113)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp113.carpet_boost
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.113
+          description: Automatic carpet detection and suction boost toggle (true/false).
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "113"
+
+        # ------------------------------------------------------------------ #
+        # DP 114 - Volume                                                     #
+        # ------------------------------------------------------------------ #
+        - uuid: b8feedc2-e9fa-4f96-ab72-ed9ebfcc5fa9
+          name: "Vacuum: Voice Volume Level (DP 114)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp114.volume
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.114
+          description: >
+            Speaker volume setting.
+            Known values: mute, low, high.
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "114"
+
+        # ------------------------------------------------------------------ #
+        # DP 116 - HEPA Filter Remaining Life                                 #
+        # ------------------------------------------------------------------ #
+        - uuid: c9afffed-fa0b-4aa7-ac83-feafcadd6ab0
+          name: "Vacuum: HEPA Filter Remaining Life (DP 116)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp116.hepa_filter
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: FLOAT
+          units: h
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.116
+            - type: MULTIPLIER
+              parameters:
+                - "0.000277778"
+          description: >
+            Remaining HEPA filter life in hours.
+            Raw value from device is in seconds; multiplied by
+            0.000277778 to convert to hours.
+          tags:
+            - tag: component
+              value: consumables
+            - tag: dp
+              value: "116"
+
+        # ------------------------------------------------------------------ #
+        # DP 119 - Main Brush Remaining Life                                  #
+        # ------------------------------------------------------------------ #
+        - uuid: d0a10fee-ab1c-4bb8-bd94-afc0dbee7bc1
+          name: "Vacuum: Main Brush Remaining Life (DP 119)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp119.main_brush
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: FLOAT
+          units: h
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.119
+            - type: MULTIPLIER
+              parameters:
+                - "0.000277778"
+          description: >
+            Remaining main brush life in hours.
+            Raw value from device is in seconds; multiplied by
+            0.000277778 to convert to hours.
+          tags:
+            - tag: component
+              value: consumables
+            - tag: dp
+              value: "119"
+
+        # ------------------------------------------------------------------ #
+        # DP 120 - Side Brushes Remaining Life                                #
+        # ------------------------------------------------------------------ #
+        - uuid: e1b21aff-bc2d-4cc9-8e05-b0d1ecff8cd2
+          name: "Vacuum: Side Brushes Remaining Life (DP 120)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp120.side_brushes
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: FLOAT
+          units: h
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.120
+            - type: MULTIPLIER
+              parameters:
+                - "0.000277778"
+          description: >
+            Remaining side brushes life in hours.
+            Raw value from device is in seconds; multiplied by
+            0.000277778 to convert to hours.
+          tags:
+            - tag: component
+              value: consumables
+            - tag: dp
+              value: "120"
+
+        # ------------------------------------------------------------------ #
+        # DP 121 - Sensors Remaining Life                                     #
+        # ------------------------------------------------------------------ #
+        - uuid: f2c32b00-cd3e-4dd0-9f16-c1e2fdaa9de3
+          name: "Vacuum: Sensors Remaining Life (DP 121)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp121.sensors
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: FLOAT
+          units: h
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.121
+            - type: MULTIPLIER
+              parameters:
+                - "0.000277778"
+          description: >
+            Remaining sensor array life in hours.
+            Raw value from device is in seconds; multiplied by
+            0.000277778 to convert to hours.
+          tags:
+            - tag: component
+              value: consumables
+            - tag: dp
+              value: "121"
+
+        # ------------------------------------------------------------------ #
+        # DP 133 - Error Code                                                 #
+        # ------------------------------------------------------------------ #
+        - uuid: a3d43c11-de4f-4ee1-aa27-d2f3aebb0ef4
+          name: "Vacuum: Error Code (DP 133)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp133.error_code
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.133
+          description: >
+            Last device error code.
+            Value "0" or "no_error" indicates nominal operation.
+          tags:
+            - tag: component
+              value: diagnostics
+            - tag: dp
+              value: "133"
+
+        # ------------------------------------------------------------------ #
+        # DP 136 - Cleaning Mode                                              #
+        # ------------------------------------------------------------------ #
+        - uuid: b4e54d22-ef50-4ff2-ab38-e3a4bfcc1fa5
+          name: "Vacuum: Cleaning Mode (DP 136)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp136.clean_mode
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.136
+          description: >
+            Current cleaning mode.
+            Known values: sweep_only, mop_only, sweep_and_mop.
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "136"
+
+        # ------------------------------------------------------------------ #
+        # DP 137 - Water Tank Installed                                       #
+        # ------------------------------------------------------------------ #
+        - uuid: c5f65e33-fa61-4aa3-ac49-f4b5cadd2ab6
+          name: "Vacuum: Water Tank Installed (DP 137)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp137.water_tank
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.137
+          description: Water tank presence sensor (true/false).
+          tags:
+            - tag: component
+              value: hardware
+            - tag: dp
+              value: "137"
+
+        # ------------------------------------------------------------------ #
+        # DP 138 - Cleaning Pad Installed                                     #
+        # ------------------------------------------------------------------ #
+        - uuid: d6a76f44-ab72-4bb4-bd50-a5c6dbee3bc7
+          name: "Vacuum: Cleaning Pad Installed (DP 138)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp138.mop_pad
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.138
+          description: Mop/cleaning pad presence sensor (true/false).
+          tags:
+            - tag: component
+              value: hardware
+            - tag: dp
+              value: "138"
+
+        # ------------------------------------------------------------------ #
+        # DP 139 - Dust Bin Full                                              #
+        # ------------------------------------------------------------------ #
+        - uuid: e7b87a55-bc83-4cc5-ae61-b6d7ecff4cd8
+          name: "Vacuum: Dust Bin Full (DP 139)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp139.dust_bin_full
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.139
+          description: Dust bin full indicator (true/false).
+          tags:
+            - tag: component
+              value: hardware
+            - tag: dp
+              value: "139"
+
+        # ------------------------------------------------------------------ #
+        # DP 141 - Voice Switch                                               #
+        # ------------------------------------------------------------------ #
+        - uuid: f8c98b66-cd94-4dd6-9f72-c7e8fdaa5de9
+          name: "Vacuum: Voice Switch (DP 141)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp141.voice
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.141
+          description: Voice/speaker enable toggle (true/false).
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "141"
+
+        # ------------------------------------------------------------------ #
+        # DP 144 - Child Lock                                                 #
+        # ------------------------------------------------------------------ #
+        - uuid: a9da9c77-de05-4ee7-aa83-d8f9aebb6efa
+          name: "Vacuum: Child Lock (DP 144)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp144.child_lock
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.144
+          description: Child lock toggle (true/false).
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "144"
+
+        # ------------------------------------------------------------------ #
+        # DP 151 - Continuous Cleaning Switch                                 #
+        # ------------------------------------------------------------------ #
+        - uuid: ba0bad88-ef16-4ff8-ab94-e9a0bfcc7f0b
+          name: "Vacuum: Continuous Cleaning Switch (DP 151)"
+          type: DEPENDENT
+          key: tuya.vacuum.dp151.continuous_clean
+          master_item:
+            key: tuya.vacuum.raw
+          value_type: CHAR
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.151
+          description: Continuous / persistent cleaning mode toggle (true/false).
+          tags:
+            - tag: component
+              value: settings
+            - tag: dp
+              value: "151"
+
+      # -------------------------------------------------------------------- #
+      # TRIGGERS                                                              #
+      # -------------------------------------------------------------------- #
+      triggers:
+        - uuid: cb1cbe99-fa27-4aa9-ac05-fabb0add8a1c
+          name: "Vacuum: Battery critically low (< 15%)"
+          expression: "last(/KaBuM Smart 900 Vacuum/tuya.vacuum.dp106.battery)<15"
+          priority: AVERAGE
+          description: >
+            Robot battery is below 15%. It may not complete the current
+            cleaning session and return to the dock.
+          tags:
+            - tag: scope
+              value: availability
+            - tag: component
+              value: power
+
+        - uuid: dc2dcfaa-ab38-4bb0-bd16-bc0c1bee9b2d
+          name: "Vacuum: HEPA filter replacement due (< 10 h remaining)"
+          expression: "last(/KaBuM Smart 900 Vacuum/tuya.vacuum.dp116.hepa_filter)<10"
+          priority: WARNING
+          description: >
+            HEPA filter has fewer than 10 hours of useful life remaining.
+            Schedule a replacement soon.
+          tags:
+            - tag: scope
+              value: maintenance
+            - tag: component
+              value: consumables
+
+        - uuid: ed3edabb-bc49-4cc1-ae27-cd1d2cff0c3e
+          name: "Vacuum: Main brush replacement due (< 10 h remaining)"
+          expression: "last(/KaBuM Smart 900 Vacuum/tuya.vacuum.dp119.main_brush)<10"
+          priority: WARNING
+          description: >
+            Main brush has fewer than 10 hours of useful life remaining.
+            Schedule a replacement soon.
+          tags:
+            - tag: scope
+              value: maintenance
+            - tag: component
+              value: consumables
+
+        - uuid: fe4febcc-cd50-4dd2-9f38-de2e3daa1d4f
+          name: "Vacuum: Side brushes replacement due (< 10 h remaining)"
+          expression: "last(/KaBuM Smart 900 Vacuum/tuya.vacuum.dp120.side_brushes)<10"
+          priority: WARNING
+          description: >
+            Side brushes have fewer than 10 hours of useful life remaining.
+            Schedule a replacement soon.
+          tags:
+            - tag: scope
+              value: maintenance
+            - tag: component
+              value: consumables
+
+        - uuid: af5afcdd-de61-4ee3-aa49-ef3f4ebb2e50
+          name: "Vacuum: Device error detected (DP 133 != 0)"
+          expression: >-
+            last(/KaBuM Smart 900 Vacuum/tuya.vacuum.dp133.error_code)<>"0"
+            and
+            last(/KaBuM Smart 900 Vacuum/tuya.vacuum.dp133.error_code)<>"no_error"
+          priority: HIGH
+          description: >
+            The vacuum has reported a non-zero error code.
+            Check the error code value in DP 133 and consult the
+            KaBuM Smart 900 / Tuya error code reference.
+          tags:
+            - tag: scope
+              value: availability
+            - tag: component
+              value: diagnostics
+
+        - uuid: b06b0dee-ef72-4ff4-ab50-fa4a5fcc3f61
+          name: "Vacuum: Dust bin is full"
+          expression: "last(/KaBuM Smart 900 Vacuum/tuya.vacuum.dp139.dust_bin_full)=\"true\""
+          priority: INFO
+          description: >
+            The dust bin full sensor has been triggered.
+            Empty the dust bin before the next cleaning session.
+          tags:
+            - tag: scope
+              value: maintenance
+            - tag: component
+              value: hardware
+
+      # -------------------------------------------------------------------- #
+      # DASHBOARDS                                                            #
+      # -------------------------------------------------------------------- #
+      dashboards:
+        - uuid: c17c1eff-fa83-4aa5-ac61-ab5b6add4a72
+          name: KaBuM Smart 900 — Overview
+          pages:
+            - name: Overview
+              widgets:
+                - type: item
+                  name: Battery
+                  x: 0
+                  "y": 0
+                  width: 4
+                  height: 3
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: KaBuM Smart 900 Vacuum
+                        key: tuya.vacuum.dp106.battery
+                    - type: INTEGER
+                      name: show_description
+                      value: "1"
+                - type: item
+                  name: Status
+                  x: 4
+                  "y": 0
+                  width: 4
+                  height: 3
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: KaBuM Smart 900 Vacuum
+                        key: tuya.vacuum.dp105.status
+                    - type: INTEGER
+                      name: show_description
+                      value: "1"
+                - type: item
+                  name: Error Code
+                  x: 8
+                  "y": 0
+                  width: 4
+                  height: 3
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: KaBuM Smart 900 Vacuum
+                        key: tuya.vacuum.dp133.error_code
+                    - type: INTEGER
+                      name: show_description
+                      value: "1"
