@@ -390,14 +390,14 @@ tail -f /var/log/tuya_zabbix.log
 1. Log in to your Zabbix frontend.
 2. Navigate to **Configuration → Templates**.
 3. Click **Import** (top-right).
-4. Select `zabbix_template_kabum_smart_900.yaml` from this repository.
+4. Select `zabbix_template_tuya_robot_vacuum.yaml` from this repository.
 5. Leave all options at their defaults and click **Import**.
 
-The template group **IoT/Smart Home** and the template **KaBuM Smart 900 Vacuum**
+The template group and the template **Tuya Robot Vacuum**
 will be created automatically.
 
-> If you adapted the template for a different model (see §7), import your
-> customised YAML file instead.
+> To adapt the template for a different model, duplicate `zabbix_template_tuya_robot_vacuum.yaml`,
+> adjust the item names and JSONPath expressions, then import the new file (see §7).
 
 ---
 
@@ -451,7 +451,7 @@ are valuable references.
 
 ### Step 3 — Update the Zabbix template
 
-In `zabbix_template_kabum_smart_900.yaml`, each dependent item has a
+In `zabbix_template_tuya_robot_vacuum.yaml`, each dependent item has a
 pre-processing step like:
 
 ```yaml
@@ -481,7 +481,7 @@ fully generic and sends the entire `dps` dictionary regardless of model.
 
 | File | Description |
 |---|---|
-| [`zabbix_template_kabum_smart_900.yaml`](zabbix_template_kabum_smart_900.yaml) | Zabbix 7.0 YAML — reference template for KaBuM Smart 900 |
+| [`zabbix_template_tuya_robot_vacuum.yaml`](zabbix_template_tuya_robot_vacuum.yaml) | Zabbix 7.0 YAML — reference template (tested on KaBuM Smart 900) |
 | [`tuya_zabbix.py`](tuya_zabbix.py) | Generic Python 3 collector script (works for any Tuya vacuum) |
 | [`.env.example`](.env.example) | Environment variable template |
 

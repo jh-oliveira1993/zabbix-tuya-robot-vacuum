@@ -2,7 +2,7 @@
 """
 tuya_zabbix.py — Tuya Local LAN Telemetry Collector for Zabbix
 ================================================================
-Reads the full DPS (Data Points) payload from a KaBuM Smart 900
+Reads the full DPS (Data Points) payload from any Tuya OEM robot vacuum
 robot vacuum (Tuya OEM, protocol 3.3) over the local network,
 serialises the ``dps`` dictionary as JSON and injects it into a
 Zabbix Proxy / Server using ``zabbix_sender``.

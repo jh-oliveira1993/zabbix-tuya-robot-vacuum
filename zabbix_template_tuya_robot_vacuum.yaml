@@ -5,8 +5,8 @@ zabbix_export:
       name: 'Global Accounts Templates'
   templates:
     - uuid: a3c4dbde4b1a4185bc03923a1050a9c6
-      template: 'Template Tuya Vacuum KaBuM 900'
-      name: 'Template Tuya Vacuum KaBuM 900'
+      template: 'Tuya Robot Vacuum'
+      name: 'Tuya Robot Vacuum'
       groups:
         - name: 'Global Accounts Templates'
       items:
@@ -26,7 +26,7 @@ zabbix_export:
             key: tuya.vacuum.raw
           triggers:
             - uuid: f2e8d7c6b5a4498dae4f5a6b7c8d9e0f
-              expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.area)<min(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.area,30d)*0.7'
+              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.area)<min(/Tuya Robot Vacuum/tuya.vacuum.area,30d)*0.7'
               name: 'Vacuum Cleaner - Session Area Abnormally Small (Possible Abandoned Session)'
               priority: WARNING
               description: 'The area covered in the most recent cleaning session is more than 30% below the smallest session recorded in the last 30 days. This comparison is zone-agnostic: it anchors on the smallest zone''s typical value, so any session — regardless of which floor was cleaned — that falls below this threshold indicates the robot likely stopped prematurely (stuck, low battery, navigation error). Requires at least 30 days of historical data.'
@@ -46,16 +46,16 @@ zabbix_export:
             key: tuya.vacuum.raw
           triggers:
             - uuid: d4d80ea47f524d7cb0f1a92e10e7b8b7
-              expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.battery)<15'
+              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.battery)<15'
               name: 'Vacuum Cleaner - Critical Battery'
               priority: AVERAGE
             - uuid: 299295c538f345818caab2f1c9c783f7
-              expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.battery)<30'
+              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.battery)<30'
               name: 'Vacuum Cleaner - Low Battery'
               priority: WARNING
               dependencies:
                 - name: 'Vacuum Cleaner - Critical Battery'
-                  expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.battery)<15'
+                  expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.battery)<15'
         - uuid: 9a5840d24c034a0283f5c531d05fae37
           name: 'Cleaning Mode'
           type: DEPENDENT
@@ -88,7 +88,7 @@ zabbix_export:
             key: tuya.vacuum.raw
           triggers:
             - uuid: 8c82330276e44be586bf15268855344d
-              expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.error_code)<>"0"'
+              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.error_code)<>"0"'
               name: 'Vacuum Cleaner - Hardware/Software Fault Detected'
               event_name: 'Vacuum fault: {ITEM.LASTVALUE}'
               priority: HIGH
@@ -112,15 +112,15 @@ zabbix_export:
             key: tuya.vacuum.raw
           triggers:
             - uuid: a7f3e2d1c4b5498e8f9a0b1c2d3e4f5a
-              expression: 'timeleft(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.filter_life,7d,0)>0 and timeleft(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.filter_life,7d,0)<259200'
+              expression: 'timeleft(/Tuya Robot Vacuum/tuya.vacuum.filter_life,7d,0)>0 and timeleft(/Tuya Robot Vacuum/tuya.vacuum.filter_life,7d,0)<259200'
               name: 'Vacuum Cleaner - HEPA Filter Projected to Expire Within 3 Days'
               priority: INFO
               description: 'Predictive maintenance alert: based on the current consumption trend (7-day linear regression), the HEPA filter is projected to reach 0 h of remaining life within 3 days. Schedule replacement proactively to avoid suction degradation. Requires at least 7 days of historical data to function reliably.'
               dependencies:
                 - name: 'Vacuum Cleaner - HEPA Filter Replacement Required'
-                  expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.filter_life)<10'
+                  expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.filter_life)<10'
             - uuid: 26d8774a7bc942f18a81500c042be546
-              expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.filter_life)<10'
+              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.filter_life)<10'
               name: 'Vacuum Cleaner - HEPA Filter Replacement Required'
               priority: WARNING
               description: 'The HEPA filter has less than 10 hours of life remaining. Replace or clean the filter to maintain suction efficiency and air quality.'
@@ -143,15 +143,15 @@ zabbix_export:
             key: tuya.vacuum.raw
           triggers:
             - uuid: b8a4f3e2d1c5498f9a0b1c2d3e4f5a6b
-              expression: 'timeleft(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.main_brush_life,7d,0)>0 and timeleft(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.main_brush_life,7d,0)<259200'
+              expression: 'timeleft(/Tuya Robot Vacuum/tuya.vacuum.main_brush_life,7d,0)>0 and timeleft(/Tuya Robot Vacuum/tuya.vacuum.main_brush_life,7d,0)<259200'
               name: 'Vacuum Cleaner - Main Brush Projected to Expire Within 3 Days'
               priority: INFO
               description: 'Predictive maintenance alert: based on the current wear trend (7-day linear regression), the main roller brush is projected to reach 0 h of remaining life within 3 days. Schedule replacement proactively to avoid reduced cleaning performance and possible motor strain. Requires at least 7 days of historical data to function reliably.'
               dependencies:
                 - name: 'Vacuum Cleaner - Main Brush Replacement Required'
-                  expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.main_brush_life)<10'
+                  expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.main_brush_life)<10'
             - uuid: d2a520ece33247049296029329eaeff7
-              expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.main_brush_life)<10'
+              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.main_brush_life)<10'
               name: 'Vacuum Cleaner - Main Brush Replacement Required'
               priority: WARNING
               description: 'The main roller brush has less than 10 hours of life remaining. Replace the brush to avoid reduced cleaning performance and possible motor strain.'
@@ -183,15 +183,15 @@ zabbix_export:
             key: tuya.vacuum.raw
           triggers:
             - uuid: d0c6b5a4f3e2498b8c2d3e4f5a6b7c8d
-              expression: 'timeleft(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.sensor_life,7d,0)>0 and timeleft(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.sensor_life,7d,0)<259200'
+              expression: 'timeleft(/Tuya Robot Vacuum/tuya.vacuum.sensor_life,7d,0)>0 and timeleft(/Tuya Robot Vacuum/tuya.vacuum.sensor_life,7d,0)<259200'
               name: 'Vacuum Cleaner - Sensor Cleaning Projected Within 3 Days'
               priority: INFO
               description: 'Predictive maintenance alert: based on the current usage trend (7-day linear regression), optical and cliff sensors are projected to require cleaning within 3 days. Schedule a proactive wipe to prevent navigation errors or cliff-detection failures. Requires at least 7 days of historical data to function reliably.'
               dependencies:
                 - name: 'Vacuum Cleaner - Sensor Cleaning Required'
-                  expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.sensor_life)<10'
+                  expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.sensor_life)<10'
             - uuid: 426073af976c4cad811f1cfd330e5dd4
-              expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.sensor_life)<10'
+              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.sensor_life)<10'
               name: 'Vacuum Cleaner - Sensor Cleaning Required'
               priority: INFO
               description: 'Optical and cliff sensors have less than 10 hours before they require cleaning. Dirty sensors can cause navigation errors or cliff-detection failures.'
@@ -214,15 +214,15 @@ zabbix_export:
             key: tuya.vacuum.raw
           triggers:
             - uuid: c9b5a4f3e2d1498a8b1c2d3e4f5a6b7c
-              expression: 'timeleft(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.side_brush_life,7d,0)>0 and timeleft(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.side_brush_life,7d,0)<259200'
+              expression: 'timeleft(/Tuya Robot Vacuum/tuya.vacuum.side_brush_life,7d,0)>0 and timeleft(/Tuya Robot Vacuum/tuya.vacuum.side_brush_life,7d,0)<259200'
               name: 'Vacuum Cleaner - Side Brush Projected to Expire Within 3 Days'
               priority: INFO
               description: 'Predictive maintenance alert: based on the current wear trend (7-day linear regression), the side sweeping brushes are projected to reach 0 h of remaining life within 3 days. Schedule replacement proactively to avoid reduced edge cleaning coverage. Requires at least 7 days of historical data to function reliably.'
               dependencies:
                 - name: 'Vacuum Cleaner - Side Brush Replacement Required'
-                  expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.side_brush_life)<10'
+                  expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.side_brush_life)<10'
             - uuid: 21a36a4491ff4a0eb447b9f890dec18c
-              expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.side_brush_life)<10'
+              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.side_brush_life)<10'
               name: 'Vacuum Cleaner - Side Brush Replacement Required'
               priority: WARNING
               description: 'The side sweeping brushes have less than 10 hours of life remaining. Replace to avoid reduced edge cleaning coverage.'
@@ -425,7 +425,7 @@ zabbix_export:
             key: tuya.vacuum.raw
           triggers:
             - uuid: a3f9e8d7c6b5498ebf5a6b7c8d9e0f1a
-              expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.time)>max(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.time,30d)*1.5'
+              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.time)>max(/Tuya Robot Vacuum/tuya.vacuum.time,30d)*1.5'
               name: 'Vacuum Cleaner - Session Duration Abnormally Long'
               priority: INFO
               description: 'The most recent cleaning session lasted more than 50% longer than the longest session recorded in the last 30 days. This comparison is zone-agnostic: it anchors on the largest zone''s typical duration, so any session that significantly exceeds this ceiling suggests the robot is navigating inefficiently (repeated passes, map desync, partial obstructions). Requires at least 30 days of historical data.'
@@ -486,20 +486,20 @@ zabbix_export:
             key: tuya.vacuum.raw
   triggers:
     - uuid: e1d7c6b5a4f3498c9d3e4f5a6b7c8d9e
-      expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.status)="cleaning" and timeleft(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.battery,30m,15)>0 and timeleft(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.battery,30m,15)<1800'
+      expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)="cleaning" and timeleft(/Tuya Robot Vacuum/tuya.vacuum.battery,30m,15)>0 and timeleft(/Tuya Robot Vacuum/tuya.vacuum.battery,30m,15)<1800'
       name: 'Vacuum Cleaner - Battery Predicted to Hit Critical Level Within 30 min'
       priority: WARNING
       description: 'While actively cleaning, the current battery discharge trend (30-minute window) indicates the battery will reach 15% within 30 minutes. The robot may not complete the session and could require manual intervention if it fails to auto-dock in time.'
       dependencies:
         - name: 'Vacuum Cleaner - Critical Battery'
-          expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.battery)<15'
+          expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.battery)<15'
     - uuid: da77cab0cb754e8e98033f91c4aa37e7
-      expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.status)="cleaning" and nodata(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.area,30m)=0 and change(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.area)=0'
+      expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)="cleaning" and nodata(/Tuya Robot Vacuum/tuya.vacuum.area,30m)=0 and change(/Tuya Robot Vacuum/tuya.vacuum.area)=0'
       name: 'Vacuum Cleaner - Robot Stuck During Cleaning'
       priority: AVERAGE
       description: 'The robot has been in "cleaning" state for over 30 minutes without any change in the cleaned area, suggesting it may be stuck or obstructed.'
     - uuid: 22d51244b6604bb5991e08df99f31e9c
-      expression: 'last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.status)="charging" and last(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.battery)<50 and now()-find(/Template Tuya Vacuum KaBuM 900/tuya.vacuum.status,,"eq","charging")>3600'
+      expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)="charging" and last(/Tuya Robot Vacuum/tuya.vacuum.battery)<50 and now()-find(/Tuya Robot Vacuum/tuya.vacuum.status,,"eq","charging")>3600'
       name: 'Vacuum Cleaner - Slow or Failed Charging Cycle'
       priority: WARNING
       description: 'The robot has been charging for over 1 hour but the battery remains below 50%, which may indicate a degraded battery cell or a dock contact issue.'
