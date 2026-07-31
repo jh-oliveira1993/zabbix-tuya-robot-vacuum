@@ -266,7 +266,7 @@ sudo apt install -y python3 python3-venv zabbix-sender
 
 # 2. Clone this repository
 git clone git@github.com:jh-oliveira1993/zabbix-tuya-robot-vacuum.git
-cd zabbix-tuya-robot-vacuum
+cd zabbix-tuya-robot-vacuum/collector
 
 # 3. Create and activate virtual environment
 python3 -m venv .venv
@@ -280,6 +280,7 @@ pip install -r requirements.txt
 python -c "
 import tinytuya
 d = tinytuya.Device('YOUR_DEVICE_ID', 'YOUR_DEVICE_IP', 'YOUR_LOCAL_KEY', version=3.3)
+d.set_version(3.3)
 print(d.status())
 "
 ```
@@ -321,11 +322,11 @@ docker compose logs -f zabbix-proxy   # verify "proxy started"
 
 ### 6.4 Configuring the Collector Script
 
-Copy `.env.example` to `.env` and fill in your values:
+Copy `collector/.env.example` to `collector/.env` and fill in your values:
 
 ```bash
-cp .env.example .env
-nano .env
+cp collector/.env.example collector/.env
+nano collector/.env
 ```
 
 ```dotenv
@@ -379,7 +380,7 @@ Add (adjust the path to match your clone location):
 
 ```cron
 # Collect Tuya vacuum telemetry every 5 minutes
-*/5 * * * * /path/to/zabbix-tuya-robot-vacuum/collect.sh >> /tmp/tuya_zabbix.log 2>&1
+*/5 * * * * /path/to/zabbix-tuya-robot-vacuum/collector/collect.sh >> /tmp/tuya_zabbix.log 2>&1
 ```
 
 Verify the log after the next 5-minute mark:
@@ -395,7 +396,7 @@ tail -f /tmp/tuya_zabbix.log
 1. Log in to your Zabbix frontend.
 2. Navigate to **Configuration → Templates**.
 3. Click **Import** (top-right).
-4. Select `zabbix_template_tuya_robot_vacuum.yaml` from this repository.
+4. Select `zabbix/zabbix_template_tuya_robot_vacuum.yaml` from this repository.
 5. Leave all options at their defaults and click **Import**.
 
 The template **Tuya Robot Vacuum** will be created automatically.
@@ -485,9 +486,10 @@ fully generic and sends the entire `dps` dictionary regardless of model.
 
 | File | Description |
 |---|---|
-| [`zabbix_template_tuya_robot_vacuum.yaml`](zabbix_template_tuya_robot_vacuum.yaml) | Zabbix 7.0 YAML — reference template (tested on KaBuM Smart 900) |
-| [`tuya_zabbix.py`](tuya_zabbix.py) | Generic Python 3 collector script (works for any Tuya vacuum) |
-| [`.env.example`](.env.example) | Environment variable template |
+| [`zabbix/zabbix_template_tuya_robot_vacuum.yaml`](zabbix/zabbix_template_tuya_robot_vacuum.yaml) | Zabbix 7.0 YAML — reference template (tested on KaBuM Smart 900) |
+| [`collector/tuya_zabbix.py`](collector/tuya_zabbix.py) | Generic Python 3 collector script (works for any Tuya vacuum) |
+| [`collector/collect.sh`](collector/collect.sh) | Bash wrapper for cron (sources `.env`, invokes Python) |
+| [`collector/.env.example`](collector/.env.example) | Environment variable template |
 
 ### Item Counts (Reference Template)
 

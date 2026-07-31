@@ -2,7 +2,7 @@
 # collect.sh — wrapper chamado pela cron
 # Carrega o .env e executa o collector Python.
 # Uso na cron:
-#   */5 * * * * /home/jose/Projects/zabbix/zabbix-tuya-robot-vacuum/collect.sh >> /tmp/tuya_zabbix.log 2>&1
+#   */5 * * * * /path/to/zabbix-tuya-robot-vacuum/collector/collect.sh >> /tmp/tuya_zabbix.log 2>&1
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
