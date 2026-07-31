@@ -395,24 +395,8 @@ tail -f /var/log/tuya_zabbix.log
 
 The template **Tuya Robot Vacuum** will be created automatically.
 
-> [!IMPORTANT]
-> **UUID identity:** Zabbix identifies templates by UUID, not by name.
-> This file shares the same UUID as the production template
-> (`Template Tuya Vacuum KaBuM 900`).
->
-> - **"Update existing" checked:** Zabbix will update the production template
->   in-place — renaming it to **Tuya Robot Vacuum** and applying any YAML
->   changes. Items, triggers, and host links remain intact.
-> - **"Update existing" unchecked:** Zabbix silently skips the template
->   (UUID already exists) — no changes are made.
->
-> If you want a **completely independent** template (e.g., for a different
-> device model), generate a new UUID for the `template:` block and all its
-> items before importing.
-
 > To adapt the template for a different model, duplicate `zabbix_template_tuya_robot_vacuum.yaml`,
-> replace all UUIDs with freshly generated v4 UUIDs, adjust item names and
-> JSONPath expressions, then import the new file (see §7).
+> adjust item names and JSONPath expressions, then import the new file (see §7).
 
 ---
 
