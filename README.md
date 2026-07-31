@@ -363,24 +363,29 @@ Expected output (success):
 
 ### 6.5 Scheduling with Cron
 
+Use the provided `collect.sh` wrapper, which sources `.env` correctly
+before invoking the Python collector.
+
+> **Why a wrapper?** The system cron daemon runs jobs under `/bin/sh`.
+> The `source` built-in is a Bash extension and is not available in POSIX
+> `sh`, causing the job to fail silently if called inline. The wrapper
+> forces Bash (`#!/bin/bash`) and resolves the issue.
+
 ```bash
 crontab -e
 ```
 
-Add (adjust paths as needed):
+Add (adjust the path to match your clone location):
 
 ```cron
-# Collect Tuya vacuum telemetry every minute
-* * * * * cd /path/to/zabbix-tuya-robot-vacuum && \
-  source .env && \
-  .venv/bin/python tuya_zabbix.py \
-  >> /var/log/tuya_zabbix.log 2>&1
+# Collect Tuya vacuum telemetry every 5 minutes
+*/5 * * * * /path/to/zabbix-tuya-robot-vacuum/collect.sh >> /tmp/tuya_zabbix.log 2>&1
 ```
 
-Verify the log after a minute:
+Verify the log after the next 5-minute mark:
 
 ```bash
-tail -f /var/log/tuya_zabbix.log
+tail -f /tmp/tuya_zabbix.log
 ```
 
 ---
