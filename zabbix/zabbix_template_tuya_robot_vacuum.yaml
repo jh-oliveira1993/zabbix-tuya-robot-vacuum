@@ -64,13 +64,33 @@ zabbix_export:
           history: 90d
           value_type: CHAR
           trends: '0'
-          description: 'Active navigation algorithm or pathing mode (e.g., smart, zone, spot).'
+          description: 'Hardware cleaning actuator profile: 1 (Sweep Only), 2 (Sweep & Mop), 3 (Mop Only). Reported via DP 136.'
+          valuemap:
+            name: 'Tuya Vacuum Cleaning Mode'
           preprocessing:
             - type: JSONPATH
               parameters:
                 - '$.[''136'']'
           master_item:
             key: tuya.vacuum.raw
+        - uuid: c93167defaaf4e12ba2e111f4148ad97
+          name: 'Collector Sample Timestamp'
+          type: DEPENDENT
+          key: tuya.vacuum.collected_at
+          delay: '0'
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+          description: 'Exact ISO-8601 UTC timestamp when telemetry was sampled locally from the vacuum by tuya_zabbix.py.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.[''_collected_at'']'
+          master_item:
+            key: tuya.vacuum.raw
+          tags:
+            - tag: component
+              value: telemetry
         - uuid: 0b59b3fc02184e938f382a9a7b9854ad
           name: 'Error Code'
           type: DEPENDENT
@@ -155,6 +175,45 @@ zabbix_export:
               name: 'Vacuum Cleaner - Main Brush Replacement Required'
               priority: WARNING
               description: 'The main roller brush has less than 10 hours of life remaining. Replace the brush to avoid reduced cleaning performance and possible motor strain.'
+        - uuid: 7366c2a704354932a1405ac201fa4d92
+          name: 'Navigation Mode'
+          type: DEPENDENT
+          key: tuya.vacuum.navigation_mode
+          delay: '0'
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+          description: 'Active navigation algorithm or pathing mode reported by MCU (DP 104): smart (Auto / Whole House), backcharge (Returning to Dock), spot (Spot cleaning), zone (Area cleaning).'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.[''104'']'
+          master_item:
+            key: tuya.vacuum.raw
+          tags:
+            - tag: component
+              value: operation
+            - tag: dp
+              value: '104'
+        - uuid: e5c5a91987604a5fb02675528219f4fb
+          name: 'Cleaning Progress / Index'
+          type: DEPENDENT
+          key: tuya.vacuum.progress
+          delay: '0'
+          history: 90d
+          value_type: FLOAT
+          description: 'Current cleaning session progress or index reported by DP 128.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.[''128'']'
+          master_item:
+            key: tuya.vacuum.raw
+          tags:
+            - tag: component
+              value: operation
+            - tag: dp
+              value: '128'
         - uuid: e62a0a20e9804e1e8cc06f0e4b8555e0
           name: 'Tuya Raw Data'
           type: TRAP
@@ -272,14 +331,14 @@ zabbix_export:
           master_item:
             key: tuya.vacuum.raw
         - uuid: b3db929a502741ab943f9c0e5a95b8d2
-          name: 'Switch: Voice Prompts (137)'
+          name: 'Water Tank Installed (137)'
           type: DEPENDENT
           key: tuya.vacuum.switch_137
           delay: '0'
           history: 90d
           value_type: CHAR
           trends: '0'
-          description: 'Boolean flag indicating whether the internal speaker is unmuted for voice announcements.'
+          description: 'Presence sensor indicating if the 2-in-1 water/dust tank is physically installed in the vacuum (true/false). Reported via DP 137.'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -287,14 +346,14 @@ zabbix_export:
           master_item:
             key: tuya.vacuum.raw
         - uuid: 27038e8334e2429fa2a5a54dc69f448c
-          name: 'Switch: Do Not Disturb (138)'
+          name: 'Mop Pad Installed (138)'
           type: DEPENDENT
           key: tuya.vacuum.switch_138
           delay: '0'
           history: 90d
           value_type: CHAR
           trends: '0'
-          description: 'Boolean flag for Do Not Disturb (DND) mode. Silences prompts and prevents auto-resume scheduling.'
+          description: 'Presence sensor indicating if the microfiber mop cloth and mop bracket are physically attached to the vacuum (true/false). Reported via DP 138.'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -347,14 +406,14 @@ zabbix_export:
           master_item:
             key: tuya.vacuum.raw
         - uuid: f7815cf1a97e41bd821c9a632b76ab6d
-          name: 'Switch: Toggle 151'
+          name: 'Switch: Continuous Cleaning (151)'
           type: DEPENDENT
           key: tuya.vacuum.switch_151
           delay: '0'
           history: 90d
           value_type: CHAR
           trends: '0'
-          description: 'OEM specific boolean toggle state.'
+          description: 'Breakpoint resume cleaning toggle (break_clean). When enabled, the robot resumes cleaning where it left off after recharging (true/false). Reported via DP 151.'
           preprocessing:
             - type: JSONPATH
               parameters:
@@ -484,6 +543,16 @@ zabbix_export:
                 - '$.[''110'']'
           master_item:
             key: tuya.vacuum.raw
+      valuemaps:
+        - uuid: 2ceb0ed4de044e62a1ea3f0a45c6d655
+          name: 'Tuya Vacuum Cleaning Mode'
+          mappings:
+            - value: '1'
+              newvalue: 'Sweep Only'
+            - value: '2'
+              newvalue: 'Sweep & Mop'
+            - value: '3'
+              newvalue: 'Mop Only'
   triggers:
     - uuid: e1d7c6b5a4f3498c9d3e4f5a6b7c8d9e
       expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)="cleaning" and timeleft(/Tuya Robot Vacuum/tuya.vacuum.battery,30m,15)>0 and timeleft(/Tuya Robot Vacuum/tuya.vacuum.battery,30m,15)<1800'

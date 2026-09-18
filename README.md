@@ -152,31 +152,36 @@ typically use lower registers (1–20) for the same concepts.
 > Use `python -m tinytuya wizard` to discover the DP map for your specific
 > device. See also [§7 Adapting to Other Models](#7-adapting-to-other-models).
 
-| DP | Zabbix Key | Type | Unit | Preprocessing | Description |
+| DP / Key | Zabbix Key | Type | Unit | Preprocessing | Description |
 |---|---|---|---|---|---|
-| 101 | `tuya.vacuum.dp101.dnd` | CHAR | — | JSONPath `$.101` | Do Not Disturb toggle |
-| 102 | `tuya.vacuum.dp102.auto_return` | CHAR | — | JSONPath `$.102` | Auto-return to dock |
-| 103 | `tuya.vacuum.dp103.auto_boost` | CHAR | — | JSONPath `$.103` | Auto-boost suction |
-| 105 | `tuya.vacuum.dp105.status` | CHAR | — | JSONPath `$.105` | Operational status string |
-| 106 | `tuya.vacuum.dp106.battery` | FLOAT | % | JSONPath `$.106` | Battery level |
-| 107 | `tuya.vacuum.dp107.clean_time` | FLOAT | min | JSONPath → ×0.0166667 | Last session duration |
-| 108 | `tuya.vacuum.dp108.clean_area` | FLOAT | m² | JSONPath `$.108` | Last session area |
-| 109 | `tuya.vacuum.dp109.suction` | CHAR | — | JSONPath `$.109` | Suction power setting |
-| 110 | `tuya.vacuum.dp110.water_level` | CHAR | — | JSONPath `$.110` | Water/mop level |
-| 113 | `tuya.vacuum.dp113.carpet_boost` | CHAR | — | JSONPath `$.113` | Carpet boost toggle |
-| 114 | `tuya.vacuum.dp114.volume` | CHAR | — | JSONPath `$.114` | Speaker volume |
-| 116 | `tuya.vacuum.dp116.hepa_filter` | FLOAT | h | JSONPath → ×0.000277778 | HEPA filter remaining life |
-| 119 | `tuya.vacuum.dp119.main_brush` | FLOAT | h | JSONPath → ×0.000277778 | Main brush remaining life |
-| 120 | `tuya.vacuum.dp120.side_brushes` | FLOAT | h | JSONPath → ×0.000277778 | Side brushes remaining life |
-| 121 | `tuya.vacuum.dp121.sensors` | FLOAT | h | JSONPath → ×0.000277778 | Sensor array remaining life |
-| 133 | `tuya.vacuum.dp133.error_code` | CHAR | — | JSONPath `$.133` | Last error code (`0` = nominal) |
-| 136 | `tuya.vacuum.dp136.clean_mode` | CHAR | — | JSONPath `$.136` | Cleaning mode |
-| 137 | `tuya.vacuum.dp137.water_tank` | CHAR | — | JSONPath `$.137` | Water tank presence |
-| 138 | `tuya.vacuum.dp138.mop_pad` | CHAR | — | JSONPath `$.138` | Mop pad presence |
-| 139 | `tuya.vacuum.dp139.dust_bin_full` | CHAR | — | JSONPath `$.139` | Dust bin full flag |
-| 141 | `tuya.vacuum.dp141.voice` | CHAR | — | JSONPath `$.141` | Voice toggle |
-| 144 | `tuya.vacuum.dp144.child_lock` | CHAR | — | JSONPath `$.144` | Child lock toggle |
-| 151 | `tuya.vacuum.dp151.continuous_clean` | CHAR | — | JSONPath `$.151` | Continuous cleaning toggle |
+| 101 | `tuya.vacuum.switch_power` | CHAR | — | JSONPath `$.['101']` | Switch: Power/Clean |
+| 102 | `tuya.vacuum.switch_pause` | CHAR | — | JSONPath `$.['102']` | Switch: Pause |
+| 103 | `tuya.vacuum.switch_home` | CHAR | — | JSONPath `$.['103']` | Switch: Return Home |
+| 104 | `tuya.vacuum.navigation_mode` | CHAR | — | JSONPath `$.['104']` | Navigation Mode (`smart`, `backcharge`, `spot`, `zone`) |
+| 105 | `tuya.vacuum.status` | CHAR | — | JSONPath `$.['105']` | Operational Status string (`chargring`, `totaling`, `dormant`, etc.) |
+| 106 | `tuya.vacuum.battery` | FLOAT | % | JSONPath `$.['106']` | Battery Level |
+| 107 | `tuya.vacuum.time` | FLOAT | m | JSONPath → ×0.0166667 | Last Cleaning Time (converted to minutes) |
+| 108 | `tuya.vacuum.area` | FLOAT | m² | JSONPath `$.['108']` | Last Cleaning Area |
+| 109 | `tuya.vacuum.suction_power` | CHAR | — | JSONPath `$.['109']` | Suction Power Level (`quiet`, `normal`, `max`) |
+| 110 | `tuya.vacuum.water_level` | CHAR | — | JSONPath `$.['110']` | Water MOP Level (`low`, `normal`, `high`) |
+| 113 | `tuya.vacuum.switch_113` | CHAR | — | JSONPath `$.['113']` | Switch: Carpet Boost (113) |
+| 114 | `tuya.vacuum.voice_volume` | FLOAT | — | JSONPath `$.['114']` | Voice Volume |
+| 116 | `tuya.vacuum.filter_life` | FLOAT | h | JSONPath → ×0.000277778 | HEPA Filter Life remaining |
+| 117 | `tuya.vacuum.total_area` | FLOAT | m² | JSONPath `$.['117']` | Total Cumulative Cleaning Area |
+| 118 | `tuya.vacuum.total_count` | FLOAT | — | JSONPath `$.['118']` | Total Cleaning Cycle Count |
+| 119 | `tuya.vacuum.main_brush_life` | FLOAT | h | JSONPath → ×0.000277778 | Main Brush Life remaining |
+| 120 | `tuya.vacuum.side_brush_life` | FLOAT | h | JSONPath → ×0.000277778 | Side Brush Life remaining |
+| 121 | `tuya.vacuum.sensor_life` | FLOAT | h | JSONPath → ×0.000277778 | Sensor Cleaning Life remaining |
+| 128 | `tuya.vacuum.progress` | FLOAT | — | JSONPath `$.['128']` | Cleaning Progress / Index |
+| 133 | `tuya.vacuum.error_code` | CHAR | — | JSONPath `$.['133']` | Error Code (`0` = nominal) |
+| 136 | `tuya.vacuum.cleaning_mode` | CHAR | — | JSONPath `$.['136']` | Hardware Cleaning Mode (1: Sweep Only, 2: Sweep & Mop, 3: Mop Only) |
+| 137 | `tuya.vacuum.switch_137` | CHAR | — | JSONPath `$.['137']` | Water Tank Installed (137) |
+| 138 | `tuya.vacuum.switch_138` | CHAR | — | JSONPath `$.['138']` | Mop Pad Installed (138) |
+| 139 | `tuya.vacuum.switch_139` | CHAR | — | JSONPath `$.['139']` | Switch: Toggle 139 |
+| 141 | `tuya.vacuum.switch_141` | CHAR | — | JSONPath `$.['141']` | Switch: Toggle 141 |
+| 144 | `tuya.vacuum.switch_144` | CHAR | — | JSONPath `$.['144']` | Switch: Toggle 144 |
+| 151 | `tuya.vacuum.switch_151` | CHAR | — | JSONPath `$.['151']` | Switch: Continuous Cleaning (151) |
+| `_collected_at` | `tuya.vacuum.collected_at` | CHAR | — | JSONPath `$.['_collected_at']` | Collector Sample Timestamp (UTC) |
 
 > **Unit conversions applied at Zabbix pre-processing stage:**
 > - Consumables (DPs 116, 119, 120, 121): device reports seconds → ×**0.000277778** → stored as **hours**
@@ -496,13 +501,13 @@ fully generic and sends the entire `dps` dictionary regardless of model.
 | Category | Count |
 |---|---|
 | Master (Trapper) | 1 |
-| Dependent — Operation | 4 |
-| Dependent — Settings | 9 |
+| Dependent — Operation & Navigation | 6 |
+| Dependent — Settings & Switches | 11 |
 | Dependent — Consumables | 4 |
-| Dependent — Hardware sensors | 3 |
+| Dependent — Hardware sensors | 5 |
 | Dependent — Diagnostics | 1 |
-| Dependent — Boolean toggles | 3 |
-| **Total items** | **25** |
+| Dependent — Telemetry Metadata | 1 |
+| **Total items** | **29** |
 
 ---
 
