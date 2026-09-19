@@ -511,16 +511,29 @@ fully generic and sends the entire `dps` dictionary regardless of model.
 
 ---
 
-## 9. Triggers & Alerts
+## 9. Triggers & Alerts (19 Total)
 
-| Trigger | Severity | Condition |
+| Trigger | Severity | Scope / Condition |
 |---|---|---|
-| Battery critically low | **Average** | DP 106 < 15% |
-| HEPA filter due | **Warning** | DP 116 < 10 h remaining |
-| Main brush due | **Warning** | DP 119 < 10 h remaining |
-| Side brushes due | **Warning** | DP 120 < 10 h remaining |
-| Device error detected | **High** | DP 133 ≠ "0" and ≠ "no_error" |
-| Dust bin full | **Info** | DP 139 = "true" |
+| **Telemetry Offline (No Data in 15 min)** | **Warning** | `nodata(tuya.vacuum.raw, 15m) = 1` |
+| **Hardware/Software Fault Detected** | **High** | `tuya.vacuum.error_code ≠ "0"` |
+| **Critical Battery** | **Average** | `tuya.vacuum.battery < 15%` |
+| **Low Battery** | **Warning** | `tuya.vacuum.battery < 30%` (depends on Critical) |
+| **Battery Predicted Critical in 30 min** | **Warning** | Discharge linear regression while cleaning (`totaling`) |
+| **Slow or Failed Charging Cycle** | **Warning** | Charging (`chargring`) > 1 h but battery < 50% |
+| **Robot Stuck During Cleaning** | **Average** | Cleaning (`totaling`) for 30m without area progress |
+| **Session Area Abnormally Small** | **Warning** | Completed session area > 30% below 30-day minimum |
+| **Session Duration Abnormally Long** | **Info** | Session duration > 50% above 30-day maximum |
+| **Mopping Mode Without Water Tank** | **Warning** | Mode is Mop (2 or 3) but Water Tank is not detected |
+| **Dust Bin Full** | **Info** | Optical sensor reports `switch_139 = "true"` |
+| **HEPA Filter Replacement Required** | **Warning** | `filter_life < 10 h` |
+| **HEPA Filter Projected to Expire in 3 Days** | **Info** | 7-day linear regression predicts 0 h within 3 days |
+| **Main Brush Replacement Required** | **Warning** | `main_brush_life < 10 h` |
+| **Main Brush Projected to Expire in 3 Days** | **Info** | 7-day linear regression predicts 0 h within 3 days |
+| **Side Brush Replacement Required** | **Warning** | `side_brush_life < 10 h` |
+| **Side Brush Projected to Expire in 3 Days** | **Info** | 7-day linear regression predicts 0 h within 3 days |
+| **Sensor Cleaning Required** | **Info** | `sensor_life < 10 h` |
+| **Sensor Cleaning Projected in 3 Days** | **Info** | 7-day linear regression predicts 0 h within 3 days |
 
 ---
 

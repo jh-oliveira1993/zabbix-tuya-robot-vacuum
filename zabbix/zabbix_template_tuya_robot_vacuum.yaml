@@ -24,12 +24,6 @@ zabbix_export:
                 - '$.[''108'']'
           master_item:
             key: tuya.vacuum.raw
-          triggers:
-            - uuid: f2e8d7c6b5a4498dae4f5a6b7c8d9e0f
-              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.area)<min(/Tuya Robot Vacuum/tuya.vacuum.area,30d)*0.7'
-              name: 'Vacuum Cleaner - Session Area Abnormally Small (Possible Abandoned Session)'
-              priority: WARNING
-              description: 'The area covered in the most recent cleaning session is more than 30% below the smallest session recorded in the last 30 days. This comparison is zone-agnostic: it anchors on the smallest zone''s typical value, so any session — regardless of which floor was cleaned — that falls below this threshold indicates the robot likely stopped prematurely (stuck, low battery, navigation error). Requires at least 30 days of historical data.'
         - uuid: b361a6b0c2384a5696c21e64ff477d85
           name: 'Battery Level'
           type: DEPENDENT
@@ -223,6 +217,17 @@ zabbix_export:
           value_type: TEXT
           trends: '0'
           description: 'Master item. Receives the raw JSON payload extracted locally via AES decryption (tinytuya). Acts as the single source of truth for all dependent items to minimize network overhead.'
+          triggers:
+            - uuid: c5dc3eb5ad4243cbb4cc31f89bd21e61
+              expression: 'nodata(/Tuya Robot Vacuum/tuya.vacuum.raw,15m)=1'
+              name: 'Vacuum Cleaner - Telemetry Offline (No Data in 15 min)'
+              priority: WARNING
+              description: 'No telemetry data has been received from the robot vacuum for over 15 minutes. Verify Wi-Fi connectivity, local IP lease, or the cron collector script.'
+              tags:
+                - tag: component
+                  value: telemetry
+                - tag: scope
+                  value: availability
         - uuid: a0f7e1b212354c01b0b75a14d59a8c6f
           name: 'Sensor Cleaning Life'
           type: DEPENDENT
@@ -375,6 +380,17 @@ zabbix_export:
                 - '$.[''139'']'
           master_item:
             key: tuya.vacuum.raw
+          triggers:
+            - uuid: c93f007e32af432a83369725a394b59e
+              expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.switch_139)="true"'
+              name: 'Vacuum Cleaner - Dust Bin Full'
+              priority: INFO
+              description: 'The dust bin full sensor reports that the dust compartment requires manual emptying.'
+              tags:
+                - tag: component
+                  value: dustbin
+                - tag: scope
+                  value: maintenance
         - uuid: 2df0661fb9984df5abafbca167b0eb81
           name: 'Switch: Toggle 141'
           type: DEPENDENT
@@ -555,20 +571,35 @@ zabbix_export:
               newvalue: 'Mop Only'
   triggers:
     - uuid: e1d7c6b5a4f3498c9d3e4f5a6b7c8d9e
-      expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)="cleaning" and timeleft(/Tuya Robot Vacuum/tuya.vacuum.battery,30m,15)>0 and timeleft(/Tuya Robot Vacuum/tuya.vacuum.battery,30m,15)<1800'
+      expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)="totaling" and timeleft(/Tuya Robot Vacuum/tuya.vacuum.battery,30m,15)>0 and timeleft(/Tuya Robot Vacuum/tuya.vacuum.battery,30m,15)<1800'
       name: 'Vacuum Cleaner - Battery Predicted to Hit Critical Level Within 30 min'
       priority: WARNING
       description: 'While actively cleaning, the current battery discharge trend (30-minute window) indicates the battery will reach 15% within 30 minutes. The robot may not complete the session and could require manual intervention if it fails to auto-dock in time.'
       dependencies:
         - name: 'Vacuum Cleaner - Critical Battery'
           expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.battery)<15'
+    - uuid: 26c1dc534b5c474a9d73d3520034e219
+      expression: '(last(/Tuya Robot Vacuum/tuya.vacuum.cleaning_mode)="2" or last(/Tuya Robot Vacuum/tuya.vacuum.cleaning_mode)="3") and last(/Tuya Robot Vacuum/tuya.vacuum.switch_137)="false"'
+      name: 'Vacuum Cleaner - Mopping Mode Without Water Tank Installed'
+      priority: WARNING
+      description: 'The vacuum is set to mopping mode (Sweep & Mop or Mop Only) but the 2-in-1 water tank is not detected as physically installed.'
+      tags:
+        - tag: component
+          value: watertank
+        - tag: scope
+          value: operation
     - uuid: da77cab0cb754e8e98033f91c4aa37e7
-      expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)="cleaning" and nodata(/Tuya Robot Vacuum/tuya.vacuum.area,30m)=0 and change(/Tuya Robot Vacuum/tuya.vacuum.area)=0'
+      expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)="totaling" and nodata(/Tuya Robot Vacuum/tuya.vacuum.area,30m)=0 and change(/Tuya Robot Vacuum/tuya.vacuum.area)=0'
       name: 'Vacuum Cleaner - Robot Stuck During Cleaning'
       priority: AVERAGE
       description: 'The robot has been in "cleaning" state for over 30 minutes without any change in the cleaned area, suggesting it may be stuck or obstructed.'
+    - uuid: f2e8d7c6b5a4498dae4f5a6b7c8d9e0f
+      expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)<>"totaling" and last(/Tuya Robot Vacuum/tuya.vacuum.area)<min(/Tuya Robot Vacuum/tuya.vacuum.area,30d)*0.7 and last(/Tuya Robot Vacuum/tuya.vacuum.area)>0'
+      name: 'Vacuum Cleaner - Session Area Abnormally Small (Possible Abandoned Session)'
+      priority: WARNING
+      description: 'The area covered in the most recent cleaning session is more than 30% below the smallest session recorded in the last 30 days. This comparison is zone-agnostic: it anchors on the smallest zone''s typical value, so any session — regardless of which floor was cleaned — that falls below this threshold indicates the robot likely stopped prematurely (stuck, low battery, navigation error). Requires at least 30 days of historical data.'
     - uuid: 22d51244b6604bb5991e08df99f31e9c
-      expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)="charging" and last(/Tuya Robot Vacuum/tuya.vacuum.battery)<50 and now()-find(/Tuya Robot Vacuum/tuya.vacuum.status,,"eq","charging")>3600'
+      expression: 'last(/Tuya Robot Vacuum/tuya.vacuum.status)="chargring" and last(/Tuya Robot Vacuum/tuya.vacuum.battery)<50 and now()-find(/Tuya Robot Vacuum/tuya.vacuum.status,,"eq","chargring")>3600'
       name: 'Vacuum Cleaner - Slow or Failed Charging Cycle'
       priority: WARNING
       description: 'The robot has been charging for over 1 hour but the battery remains below 50%, which may indicate a degraded battery cell or a dock contact issue.'
